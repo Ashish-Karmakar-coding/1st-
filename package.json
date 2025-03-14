@@ -1,0 +1,12 @@
+{
+  "name": "ashish",
+  "version": "1.0.0",
+  "description": "this is from the youtube and this is my 1st industrial level project",
+  "license": "ISC",
+  "author": "Ashish Karmakar",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
