@@ -25,10 +25,6 @@ connectDB() // to connect to the database
 
 
 
-
-
-
-
 /*
 import express from "express"
 
