@@ -1,5 +1,5 @@
 const asyncHandler = (requestHandler) =>{
-    (req , res , next) => { // to handle the async function using try catch block
+    return (req , res , next) => { // to handle the async function using try catch block
         Promise.resolve(requestHandler(req , res , next)).catch((err) => next(err)) // to handle the error
     }
 }
