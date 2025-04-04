@@ -99,7 +99,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const {email ,username, password} = req.body // to get the user's details from frontend
 
-    if (!username || !email){
+    if (!username && !email){
         throw new ApiError(404, "Username or email is required"); // to check if all fields are required
     }
 
