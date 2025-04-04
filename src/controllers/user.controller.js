@@ -3,6 +3,7 @@ import { ApiError } from '../utils/ApiError.js';
 import {User} from '../models/user.model.js';
 import {uploadOnCloudinary} from '../utils/cloudinary.js';
 import {ApiResponse} from '../utils/ApiResponse.js';
+import jwt from 'jsonwebtoken';
 
 const generateAccessAndRefreshToken = async (userId) => { // to generate access and refresh token
     try {
@@ -168,4 +169,44 @@ const logoutUser = asyncHandler(async (req, res) => {
  
 })
 
-export {registerUser, loginUser, logoutUser}; // to export the registerUser function
+const refreshAccessToken = asyncHandler(async (req, res) => {
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refresToken // to get the refresh token from the cookies
+
+    if (!incomingRefreshToken) {
+        throw new ApiError(400, "Refresh token is required") // to check for refresh token
+    }
+
+    try {
+        const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET) // to decode the refresh token
+    
+        const user = await User.findById(decodedToken?._id) // to get the user by id
+    
+        if (!user) {
+            throw new ApiError(400, "Refresh token is required") // to check for refresh token
+        }
+    
+        if (incomingRefreshToken !== user?.refreshToken) {
+            throw new ApiError(400, "Invalid refresh token") // to check for refresh token
+        }
+    
+        const option = { // options to send cookies
+            httpOnly: true, // to make the cookies http only
+            secure: true, // to make the cookies secure
+        }
+    
+        const {accessToken,newRefreshToken} = await generateAccessAndRefreshToken(user._id) // to generate access token and refresh token
+        return res
+        .status(200)
+        .cookie("accessToken", accessToken, option) // to set the access token
+        .cookie("refreshToken", newRefreshToken, option) // to set the refresh token
+        .json(
+            new ApiResponse(200, {accessToken, newRefreshToken}, "Access token refreshed successfully") // to return the response
+        )
+    } catch (error) {
+        throw new ApiError(400, "Invalid refresh token") // to check for refresh token 
+        
+    }
+
+})
+
+export {registerUser, loginUser, logoutUser , refreshAccessToken}; // to export the registerUser function
