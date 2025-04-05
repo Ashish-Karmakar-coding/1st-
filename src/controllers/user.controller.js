@@ -209,4 +209,123 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 })
 
-export {registerUser, loginUser, logoutUser , refreshAccessToken}; // to export the registerUser function
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+    const {oldPassword , newPassword , confirmPassword} =req.body // to get the user's details from frontend
+
+    if (!(newPassword === confirmPassword)) {
+        throw new ApiError(400, "New password and confirm password do not match") // to check if the password is correct    
+    }
+
+    const user = await User.findById(req.user._id); // to get the user by id
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword) // to check if the password is correct
+
+    if (!isPasswordCorrect) {
+        throw new ApiError(400, "Old password is incorrect") // to check if the password is correct
+    }
+    user.password = newPassword // to set the new password
+    await user.save({validateBeforeSave: false}) // to save the new password
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Password changed successfully")) // to return the response
+
+})
+
+const getCurrentUser = asyncHandler(async (req, res) => {   
+    return res
+    .status(200)
+    .json(200, req.user , "Current user fetched succesfully ") // to return the response
+})
+
+const updateAcountDetails = asyncHandler( async (req,res) => {
+    const {fullName , email} = req.body // to get the user's details from frontend
+
+    if (!fullName || !email) {
+        throw new ApiError(400, "All fields are required") // to check if all fields are required
+        
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set:{
+                fullName, // to set the full name
+                email, // to set the email
+            }
+        },
+        {new: true,} // to get return the updated values   
+    ).select("-password") // to remove password and refresh token field from the response
+
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, user, "User updated successfully")) // to return the response
+
+
+})
+
+const updateAvatar = asyncHandler(async (req, res) => {
+    const avatarLocalPath = req.file?.path; // to get the file from the request
+
+    if (!avatarLocalPath) {
+        throw new ApiError(400, "Avatar is required"); // to check for avatar
+        
+    }
+
+    const avatar = await uploadOnCloudinary(avatarLocalPath); // to upload them to cloudinary
+    if (!avatar.url) {
+        throw new ApiError(500, "Error uploading avatar"); // to check for avatar    
+    }
+
+    const user =  await User.findByIdAndUpdate(req.user?._id, 
+        {
+            $set:{
+                avatar: avatar.url // to set the avatar
+            }
+        },
+        {new: true,} // to get return the updated values
+    ).select("-password") // to remove password and refresh token field from the response
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Avatar image updated successfully")) // to return the response 
+
+})
+
+const updateCoverImage = asyncHandler(async (req, res) => {
+    const CoverImageLocalPath = req.file?.path; // to get the file from the request
+
+    if (!CoverImageLocalPath) {
+        throw new ApiError(400, "Cover image is required"); // to check for avatar
+        
+    }
+
+    const coverImage = await uploadOnCloudinary(CoverImageLocalPath); // to upload them to cloudinary
+    if (!coverImage.url) {
+        throw new ApiError(500, "Error uploading cover image"); // to check for avatar    
+    }
+
+    const user = await User.findByIdAndUpdate(req.user?._id, 
+        {
+            $set:{
+                coverImage: coverImage.url // to set the avatar
+            }
+        },
+        {new: true,} // to get return the updated values
+    ).select("-password") // to remove password and refresh token field from the response
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, user, "cover image updated successfully")) // to return the response 
+
+})
+
+export {registerUser,
+     loginUser, 
+     logoutUser , 
+     refreshAccessToken , 
+     changeCurrentPassword , 
+     getCurrentUser , 
+     updateAcountDetails,
+     updateAvatar,
+     updateCoverImage }; 

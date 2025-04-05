@@ -10,6 +10,6 @@ const subscriptionSchema = new Schema({
         ref: 'User',
     },
 
-},{timestamps: true}); // to add timestamps to the schema
+},{timestamps: true}); // to add timestamps to the schema 
 
 const Subscription = mongoose.model('Subscription', subscriptionSchema);
