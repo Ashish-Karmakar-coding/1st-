@@ -320,12 +320,88 @@ const updateCoverImage = asyncHandler(async (req, res) => {
 
 })
 
+const getUserChannelProfile = asyncHandler(async(req , res) =>{
+
+    const {username} = req.params  // to get the username from the link the user will hit
+    if (!username?.trim()) {
+        throw new ApiError(400, "Username is required")
+    }
+
+    const channel = await User.aggregate([ // to get the channel profile
+        {
+            $match:{ // to match the username
+                username : username?.toLowerCase(),
+                
+            }
+        },
+        {
+            $lookup:{ // to lookup the user details
+                from:"subscriptions",
+                localField:"_id",
+                foreignField:"channel", // to get the channel id
+                as:"subscribers"
+            }
+        },
+        {
+            $lookup:{ // to lookup the user details
+                from:"subscriptions",
+                localField:"_id",
+                foreignField:"subscriber", // to get the subscriber id
+                as:"subscribedTo"
+            }
+        },
+        {
+            $addFields:{
+                subscribersCount:{
+                    $size:"$subscribers" // to get the size of the subscribers
+                },
+                channelSubscribedToCount:{
+                    $size:"$subscribedTo" // to get the size of the subscribed to
+                },
+                isSubscribed:{ // to check if the user is subscribed to the channel
+                    $cond:{ // condition
+                        if:{  
+                            $in:[req.user?._id, "$subscribers.subscriber"] // to check if the user is subscribed to the channel
+                        },
+                        then:true,
+                        else:false
+                    }
+                }
+            }
+        },
+        {
+            $project:{ // to project the user details to the frontend
+                fullName:1,
+                username:1,
+                subscribersCount:1,
+                isSubscribed:1,
+                isSubscribed:1,
+                avatar:1,
+                coverImage:1,
+                email:1,
+            }
+        }
+    ]);
+
+    if (!channel?.length) {
+        throw new ApiError(404, "Channel not found") // to check for channel
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, channel[0], "Channel profile fetched successfully")
+    ) // to return the response
+
+})
+
 export {registerUser,
-     loginUser, 
-     logoutUser , 
-     refreshAccessToken , 
-     changeCurrentPassword , 
-     getCurrentUser , 
-     updateAcountDetails,
-     updateAvatar,
-     updateCoverImage }; 
+    loginUser, 
+    logoutUser , 
+    refreshAccessToken , 
+    changeCurrentPassword , 
+    getCurrentUser , 
+    updateAcountDetails,
+    updateAvatar,
+    updateCoverImage, 
+    getUserChannelProfile }; 
