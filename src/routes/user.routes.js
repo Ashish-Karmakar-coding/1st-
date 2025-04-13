@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { loginUser, registerUser, logoutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser , updateAcountDetails, updateAvatar , updateCoverImage , getUserChannelProfile , getWatchHistory  } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
-import { verify } from "jsonwebtoken";
 import { verifyJWT } from "../middlewares/verifyJWT.js";
 
 const router = Router();
