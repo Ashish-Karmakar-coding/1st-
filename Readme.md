@@ -1,1 +1,2 @@
-this is from the youtube and this is my 1st industrial level project
+This repo contains my 1st learning of backend development 
+Where is some basics practice of my backend development practice 
